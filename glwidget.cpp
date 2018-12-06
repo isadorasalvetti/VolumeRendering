@@ -3,7 +3,7 @@
 #include <QApplication>
 #include <QMatrix4x4>
 #include <QMouseEvent>
-#include <plyreader.h>
+#include <rawreader.h>
 
 
 using namespace std;
@@ -149,10 +149,11 @@ void GLWidget::setPolygonMode(bool bFill)
 	update();
 }
 
-void GLWidget::loadMesh(const QString &filename)
+void GLWidget::loadMesh(const QString &filename, int x, int y, int z)
 {
-	PLYReader reader;
+    cout << "Loading data of resolution " << x << ", " << y << ", " << z << "." << endl;
 
+	RawReader reader;
 	mesh.destroy();
 	reader.readMesh(filename, mesh);
 	makeCurrent();
@@ -163,4 +164,5 @@ void GLWidget::loadMesh(const QString &filename)
 	}
 	doneCurrent();
 	update();
+
 }

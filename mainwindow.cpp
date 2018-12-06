@@ -1,7 +1,10 @@
 #include <QFileDialog>
+#include <QDebug>
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
+#include "dialogresolution.h"
 
+using namespace std;
 
 MainWindow::MainWindow(QWidget *parent) :
 	QMainWindow(parent),
@@ -27,7 +30,13 @@ void MainWindow::on_checkBoxFill_toggled(bool checked)
 
 void MainWindow::on_action_Open_triggered()
 {
-	QString filename = QFileDialog::getOpenFileName(this, tr("Open PLY"), ".", tr("*.ply"));
+    DialogResolution resolutionWindow(this);
+    resolutionWindow.setModal(true);
+    if (resolutionWindow.exec() == QDialog::Accepted)
+        OpenVolumeData(resolutionWindow.resX, resolutionWindow.resY, resolutionWindow.resZ);
+}
 
-	ui->openGLWidget->loadMesh(filename);
+void MainWindow::OpenVolumeData(int x, int y, int z){
+    QString filename = QFileDialog::getOpenFileName(this, tr("Open RAW"), ".", tr("*.raw"));
+    ui->openGLWidget->loadMesh(filename, x, y, z);
 }

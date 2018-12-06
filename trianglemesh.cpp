@@ -181,37 +181,4 @@ void TriangleMesh::fillVBOs(vector<QVector3D> &replicatedVertices, vector<QVecto
 }
 
 
-//Corner table calculation
-void TriangleMesh::buildCornerTable(){
-
-    /* Get/ store edge-corner data. (1)
-     * If current edge has already been visited, remove the pair. (2)
-     * Assign the pair as corners. (3)
-    */
-
-    int NoTris = triangles.size()/3;
-    vector<vector<int>> tableEdgeCorners;
-
-    for (int i = 0; i < NoTris; i++){ //(1)
-        for (int j = 0; j < 3; j++){ //Check each edge of the triangle.
-            int o = j-1; int p = j+1;
-            if (p > 3) p = 0; if (o < 0) o = 2;
-
-            int v0 = i*3 + j;
-            int v1 = min(i*3 + o, i*3 + p);
-            int v2 = max(i*3 + o, i*3 + p);
-
-            vector<int> edgeCorner;
-            edgeCorner.push_back(v1); edgeCorner.push_back(v2); edgeCorner.push_back(v0);
-
-            for (int k = 0; k < tableEdgeCorners.size(); k++){
-
-            }
-        }
-
-    }
-
-}
-
-
 

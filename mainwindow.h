@@ -12,8 +12,10 @@ class MainWindow : public QMainWindow
 	Q_OBJECT
 
 public:
-	explicit MainWindow(QWidget *parent = 0);
+    explicit MainWindow(QWidget *parent = nullptr);
 	~MainWindow();
+
+    void OpenVolumeData(int x, int y, int z);
 
 private slots:
 	void on_action_Quit_triggered();

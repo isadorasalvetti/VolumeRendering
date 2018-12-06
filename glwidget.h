@@ -14,7 +14,7 @@ public:
 	GLWidget(QWidget *parent);
 	~GLWidget();
 
-	void loadMesh(const QString &filename);
+    void loadMesh(const QString &filename, int x, int y, int z);
 	void setPolygonMode(bool bFill);
 
 protected:
