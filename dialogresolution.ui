@@ -57,22 +57,40 @@
       </property>
       <item>
        <widget class="QSpinBox" name="ResX">
+        <property name="minimum">
+         <number>1</number>
+        </property>
         <property name="maximum">
          <number>1000</number>
+        </property>
+        <property name="value">
+         <number>400</number>
         </property>
        </widget>
       </item>
       <item>
        <widget class="QSpinBox" name="ResY">
+        <property name="minimum">
+         <number>1</number>
+        </property>
         <property name="maximum">
          <number>1000</number>
+        </property>
+        <property name="value">
+         <number>296</number>
         </property>
        </widget>
       </item>
       <item>
        <widget class="QSpinBox" name="ResZ">
+        <property name="minimum">
+         <number>1</number>
+        </property>
         <property name="maximum">
          <number>1000</number>
+        </property>
+        <property name="value">
+         <number>352</number>
         </property>
        </widget>
       </item>

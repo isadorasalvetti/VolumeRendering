@@ -10,15 +10,17 @@ INCLUDEPATH += .
 
 # Input
 HEADERS += glwidget.h mainwindow.h \
-    trianglemesh.h \
     rawreader.h \
-    dialogresolution.h
+    dialogresolution.h \
+    volume.h \
+    viewplane.h
 FORMS += mainwindow.ui \
     dialogresolution.ui
 SOURCES += glwidget.cpp main.cpp mainwindow.cpp \
-    trianglemesh.cpp \
     rawreader.cpp \
-    dialogresolution.cpp
+    dialogresolution.cpp \
+    volume.cpp \
+    viewplane.cpp
 
 DISTFILES += \
     shaders/simpleshader.vert \

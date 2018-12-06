@@ -21,9 +21,6 @@ public:
 
 private slots:
     void on_Confirm_released();
-    void on_ResX_valueChanged(int val);
-    void on_ResY_valueChanged(int val);
-    void on_ResZ_valueChanged(int val);
 
 private:
     Ui::DialogResolution *ui;

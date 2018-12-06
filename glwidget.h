@@ -4,7 +4,7 @@
 
 #include <QOpenGLWidget>
 #include <QOpenGLFunctions>
-#include "trianglemesh.h"
+#include "volume.h"
 
 
 class GLWidget : public QOpenGLWidget, protected QOpenGLFunctions
@@ -35,7 +35,7 @@ private:
 	QPoint lastMousePos;
 
 	QOpenGLShaderProgram *program;
-	TriangleMesh mesh;
+    Volume vol;
 
 };
 

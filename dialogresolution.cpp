@@ -14,17 +14,8 @@ DialogResolution::~DialogResolution()
 }
 
 void DialogResolution::on_Confirm_released(){
+    resX = ui->ResX->value();
+    resY = ui->ResY->value();
+    resZ = ui->ResZ->value();
     accept();
-}
-
-void DialogResolution::on_ResX_valueChanged(int val){
-    resX = val;
-}
-
-void DialogResolution::on_ResY_valueChanged(int val){
-    resY = val;
-}
-
-void DialogResolution::on_ResZ_valueChanged(int val){
-    resZ = val;
 }

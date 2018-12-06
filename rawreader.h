@@ -1,27 +1,33 @@
 #ifndef PLYREADER_H
 #define PLYREADER_H
 
-
+#include <exception>
 #include <fstream>
-#include "trianglemesh.h"
+#include "volume.h"
 
 
-using namespace std;
-
+class sizeException:public exception{
+  public:
+    const string Error(){
+        return "Read size does not match expected resolution."
+               "\nSize: " + to_string(size) + "\nExpected Size:" + to_string(expectedSize);
+    }
+    int size, expectedSize;
+    void SetSize(int s, int es){
+        size = s;
+        expectedSize = es;
+    }
+};
 
 class RawReader
 {
 
 public:
-	static bool readMesh(const QString &filename, TriangleMesh &mesh);
+    vector<int> readVolume(const QString &filename, int expectedSize);
 
 private:
-	static bool loadHeader(ifstream &fin, int &nVertices, int &nFaces);
-	static void loadVertices(ifstream &fin, int nVertices, vector<float> &plyVertices);
-	static void loadFaces(ifstream &fin, int nFaces, vector<int> &plyTriangles);
-	static void rescaleModel(vector<float> &plyVertices);
-	static void addModelToMesh(const vector<float> &plyVertices, const vector<int> &plyTriangles, TriangleMesh &mesh);
-
+    static void loadVolume(vector<int> &voxels, ifstream &fin);
+    static void VerifySize(int mySize, int expectedSize);
 };
 
 #endif // PLYREADER_H

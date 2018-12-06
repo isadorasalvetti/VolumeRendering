@@ -41,8 +41,8 @@ void GLWidget::initializeGL()
 	}
 	program->bind();
 
-	mesh.buildCube();
-	if(!mesh.init(program))
+    vol.buildCube();
+    if(!vol.init(program))
 	{
 			cout << "Could not create vbo" << endl;
 			QApplication::quit();
@@ -74,13 +74,13 @@ void GLWidget::paintGL()
 		glPolygonOffset(0.5f, 1.0f);
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 		//cube.render(*this);
-		mesh.render(*this);
+        vol.render(*this);
 		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 		glDisable(GL_POLYGON_OFFSET_FILL);
 		program->setUniformValue("color", QVector4D(0.05, 0.05, 0.15, 1.0));
 	}
 	//cube.render(*this);
-	mesh.render(*this);
+    vol.render(*this);
 	program->release();
 }
 
@@ -152,14 +152,15 @@ void GLWidget::setPolygonMode(bool bFill)
 void GLWidget::loadMesh(const QString &filename, int x, int y, int z)
 {
     cout << "Loading data of resolution " << x << ", " << y << ", " << z << "." << endl;
-
 	RawReader reader;
-	mesh.destroy();
-	reader.readMesh(filename, mesh);
+    vol.destroy();
+
+    vector<int> voxels = reader.readVolume(filename, x*y*z);
 	makeCurrent();
-	if(!mesh.init(program))
+
+    if(!vol.init(program, voxels, x, y, z))
 	{
-			cout << "Could not create vbo" << endl;
+            cout << "Could not initialize voxel rendering" << endl;
 			QApplication::quit();
 	}
 	doneCurrent();
