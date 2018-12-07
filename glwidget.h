@@ -3,11 +3,11 @@
 
 
 #include <QOpenGLWidget>
-#include <QOpenGLFunctions>
-#include "volume.h"
+#include <QOpenGLFunctions_3_3_Core>
+#include "volumerender.h"
 
 
-class GLWidget : public QOpenGLWidget, protected QOpenGLFunctions
+class GLWidget : public QOpenGLWidget, protected QOpenGLFunctions_3_3_Core
 {
 
 public:
@@ -15,19 +15,19 @@ public:
 	~GLWidget();
 
     void loadMesh(const QString &filename, int x, int y, int z);
-	void setPolygonMode(bool bFill);
+    //void setPolygonMode(bool bFill);
 
 protected:
 	void initializeGL();
 	void resizeGL(int w, int h);
 	void paintGL();
 
-	void mousePressEvent(QMouseEvent *event);
-	void mouseMoveEvent(QMouseEvent *event);
+    //void mousePressEvent(QMouseEvent *event);
+    //void mouseMoveEvent(QMouseEvent *event);
 
 private:
-	void setProjection(float aspect);
-	void setModelview();
+    //void setProjection(float aspect);
+    //void setModelview();
 
 private:
 	bool bPolygonFill;
@@ -35,7 +35,7 @@ private:
 	QPoint lastMousePos;
 
 	QOpenGLShaderProgram *program;
-    Volume vol;
+    VolumeRender vol;
 
 };
 

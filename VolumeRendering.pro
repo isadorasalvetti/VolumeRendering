@@ -12,15 +12,12 @@ INCLUDEPATH += .
 HEADERS += glwidget.h mainwindow.h \
     rawreader.h \
     dialogresolution.h \
-    volume.h \
-    viewplane.h
+    volumerender.h
 FORMS += mainwindow.ui \
     dialogresolution.ui
 SOURCES += glwidget.cpp main.cpp mainwindow.cpp \
-    rawreader.cpp \
     dialogresolution.cpp \
-    volume.cpp \
-    viewplane.cpp
+    volumerender.cpp
 
 DISTFILES += \
     shaders/simpleshader.vert \

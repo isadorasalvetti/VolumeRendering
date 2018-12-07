@@ -25,7 +25,7 @@ void MainWindow::on_action_Quit_triggered()
 
 void MainWindow::on_checkBoxFill_toggled(bool checked)
 {
-	 ui->openGLWidget->setPolygonMode(checked);
+    // ui->openGLWidget->setPolygonMode(checked);
 }
 
 void MainWindow::on_action_Open_triggered()

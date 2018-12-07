@@ -15,9 +15,15 @@ const float minDistanceCamera = 1.0f;
 const float maxDistanceCamera = 3.0f;
 
 
-GLWidget::GLWidget(QWidget *parent) : QOpenGLWidget(parent), bPolygonFill(true), angleX(0.0f), angleY(0.0f), distance(2.0f)
+GLWidget::GLWidget(QWidget *parent)
+    : QOpenGLWidget(parent)
+    , bPolygonFill(true)
+    , angleX(0.0f)
+    , angleY(0.0f)
+    , distance(2.0f)
+    , vol(*this)
 {
-	program = NULL;
+    program = nullptr;
 }
 
 GLWidget::~GLWidget()
@@ -41,49 +47,30 @@ void GLWidget::initializeGL()
 	}
 	program->bind();
 
-    vol.buildCube();
-    if(!vol.init(program))
-	{
-			cout << "Could not create vbo" << endl;
-			QApplication::quit();
-	}
+    GLint m_viewport[4];
+    glGetIntegerv(GL_VIEWPORT, m_viewport);
+    program->setUniformValue("SIZE", m_viewport[2], m_viewport[3]);
+
+    vol.init(program);
 
 	glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
 	glEnable(GL_DEPTH_TEST);
 }
 
-void GLWidget::resizeGL(int w, int h)
-{
+void GLWidget::resizeGL(int w, int h) {
 	glViewport(0,0,w,h);
-	setProjection((float)w/h);
-	setModelview();
+//	setProjection((float)w/h);
+//	setModelview();
 }
 
-void GLWidget::paintGL()
-{
+void GLWidget::paintGL() {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
 	program->bind();
-	program->setUniformValue("bLighting", bPolygonFill);
-	if(bPolygonFill)
-		program->setUniformValue("color", QVector4D(0.75, 0.8, 0.9, 1.0));
-	else
-	{
-		program->setUniformValue("color", QVector4D(1.0f, 1.0f, 1.0f, 1.0f));
-		glEnable(GL_POLYGON_OFFSET_FILL);
-		glPolygonOffset(0.5f, 1.0f);
-		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-		//cube.render(*this);
-        vol.render(*this);
-		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-		glDisable(GL_POLYGON_OFFSET_FILL);
-		program->setUniformValue("color", QVector4D(0.05, 0.05, 0.15, 1.0));
-	}
-	//cube.render(*this);
-    vol.render(*this);
+    vol.render();
 	program->release();
 }
 
+/*
 void GLWidget::mousePressEvent(QMouseEvent *event)
 {
 	lastMousePos = event->pos();
@@ -148,17 +135,14 @@ void GLWidget::setPolygonMode(bool bFill)
 	doneCurrent();
 	update();
 }
-
+*/
 void GLWidget::loadMesh(const QString &filename, int x, int y, int z)
 {
     cout << "Loading data of resolution " << x << ", " << y << ", " << z << "." << endl;
-	RawReader reader;
-    vol.destroy();
-
-    vector<int> voxels = reader.readVolume(filename, x*y*z);
+    RawReader<unsigned short> reader(filename, x*y*z);
 	makeCurrent();
 
-    if(!vol.init(program, voxels, x, y, z))
+    if(!vol.setVolumeData(program, reader.getData(), x, y, z))
 	{
             cout << "Could not initialize voxel rendering" << endl;
 			QApplication::quit();
