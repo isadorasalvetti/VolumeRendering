@@ -30,7 +30,7 @@ private:
     //void setModelview();
 
 private:
-	bool bPolygonFill;
+    bool bPolygonFill;
 	float angleX, angleY, distance;
 	QPoint lastMousePos;
 

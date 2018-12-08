@@ -25,8 +25,6 @@ public:
 private:
     QOpenGLVertexArrayObject VAO;
     QOpenGLBuffer VBOverts, VBOfaces;
-    void BuildBuffers(QOpenGLShaderProgram *program);
-    void BuildPlane();
     void Create3Dtexture(QOpenGLShaderProgram *program);
     void DefUniforms(QOpenGLShaderProgram *program);
 

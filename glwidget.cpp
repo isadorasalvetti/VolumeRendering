@@ -140,7 +140,6 @@ void GLWidget::loadMesh(const QString &filename, int x, int y, int z)
 {
     cout << "Loading data of resolution " << x << ", " << y << ", " << z << "." << endl;
     RawReader<unsigned short> reader(filename, x*y*z);
-	makeCurrent();
 
     if(!vol.setVolumeData(program, reader.getData(), x, y, z))
 	{

@@ -10,14 +10,43 @@ VolumeRender::VolumeRender(QOpenGLFunctions_3_3_Core &ogl)
 }
 
 bool VolumeRender::init(QOpenGLShaderProgram *program){
-    BuildBuffers(program);
-    BuildPlane();
+    //BuildBuffers(program);
+    //BuildPlane();
 
+    static float vertices[4][3] = {
+        {1.0, -1.0, 0.0},
+        {-1.0, -1.0, 0.0},
+        {-1.0, 1.0, 0.0},
+        {1.0, 1.0, 0.0}
+    }; // CW from bottom-right
+
+    static unsigned short faces[6] = {
+        0, 1, 2,
+        0, 2, 3
+    };
+    VAO.create();
+    VAO.bind();
+
+    program->bind();
+    VBOverts.create();
+    VBOverts.bind();
+    VBOverts.setUsagePattern(QOpenGLBuffer::StaticDraw);
+    VBOverts.allocate(vertices, 12*sizeof(float));
+
+    program->enableAttributeArray(0);
+    program->setAttributeArray(0, GL_FLOAT, nullptr, 3, 0);
+
+    VBOfaces.create();
+    VBOfaces.bind();
+    VBOfaces.setUsagePattern(QOpenGLBuffer::StaticDraw);
+    VBOfaces.allocate(faces, 6*sizeof(unsigned short));
+
+    VAO.release();
+    program->release();
     return false;
 }
 
 bool VolumeRender::setVolumeData(QOpenGLShaderProgram *program, vector<unsigned short> v, int x, int y, int z){
-
     voxels = v;
     sX = x;
     sY = y;
@@ -31,7 +60,10 @@ bool VolumeRender::setVolumeData(QOpenGLShaderProgram *program, vector<unsigned 
 void VolumeRender::render(){
     if (voxelsLoaded){
         VAO.bind();
-        gl.glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
+        gl.glClearColor(0.8,0.8,0.8,1.0);
+        gl.glClear(GL_COLOR_BUFFER_BIT);
+        //gl.glDrawArrays(GL_TRIANGLES, 0, 12);
+        gl.glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, nullptr);
         VAO.release();
     }
 }
@@ -58,52 +90,7 @@ void VolumeRender::Create3Dtexture(QOpenGLShaderProgram *program){
 void VolumeRender::DefUniforms(QOpenGLShaderProgram *program){
     program->bind();
 
+    program->release();
 }
-
-void VolumeRender::BuildPlane(){
-    //Lists of vertices, faces and normal
-    GLint vertices[12] = {
-        1, -1, 0,
-        -1, -1, 0,
-        -1, 1, 0,
-        1, 1, 0
-    };
-    GLuint faces[6] = {
-        0, 1, 2,
-        1, 2, 3
-    };
-
-    //Alocate buffer data
-    VAO.bind();
-    VBOverts.bind();
-    VBOverts.allocate(&vertices[0], 3 * sizeof(GLint) * 12);
-    VBOverts.release();
-
-    VBOfaces.bind();
-    VBOfaces.allocate(&faces[0], 3 * sizeof(GLuint) * 6);
-    VBOfaces.release();
-    VAO.release();
-
-    if (!VBOfaces.isCreated() || !VBOverts.isCreated() || !VAO.isCreated())
-        throw runtime_error("Vertex Buffers creation failed");
-}
-
-void VolumeRender::BuildBuffers(QOpenGLShaderProgram *program){
-   VAO.create();
-   VBOverts.create(); VBOfaces.create();
-
-   program->bind();
-   VAO.bind();
-
-   VBOverts.bind();
-   VBOverts.setUsagePattern(QOpenGLBuffer::StaticDraw);
-   program->enableAttributeArray(0);
-   program->setAttributeBuffer(0, GL_FLOAT, 0, 3, 0);
-
-   VBOfaces.bind();
-   VBOfaces.setUsagePattern(QOpenGLBuffer::StaticDraw);
-   program->release();
-}
-
 
 
