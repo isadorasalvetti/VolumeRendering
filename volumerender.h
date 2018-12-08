@@ -25,10 +25,11 @@ public:
 private:
     QOpenGLVertexArrayObject VAO;
     QOpenGLBuffer VBOverts, VBOfaces;
-    void Create3Dtexture(QOpenGLShaderProgram *program);
+    GLuint volumeTexture;
+
     void DefUniforms(QOpenGLShaderProgram *program);
 
-    bool voxelsLoaded = true;
+    bool voxelsLoaded = false;
     vector<unsigned short> voxels;
     int sX, sY, sZ;
 

@@ -8,6 +8,5 @@ out vec4 color;
 void main(){
     vec2 coords = (gl_FragCoord.xy - 0.5) / SIZE;
     vec3 texcoords = vec3(coords, 0.5);
-    color = texture(VOXELS, texcoords);
-    color = vec4(1,1,0,1);
+    color = vec4(vec3(1)-texture(VOXELS, texcoords).rrr, 1.0);
 }

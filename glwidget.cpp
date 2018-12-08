@@ -55,10 +55,14 @@ void GLWidget::initializeGL()
 
 	glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
 	glEnable(GL_DEPTH_TEST);
+    glEnable(GL_TEXTURE_3D);
 }
 
 void GLWidget::resizeGL(int w, int h) {
 	glViewport(0,0,w,h);
+    program->bind();
+    program->setUniformValue("SIZE", w, h);
+    program->release();
 //	setProjection((float)w/h);
 //	setModelview();
 }

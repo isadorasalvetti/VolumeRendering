@@ -1,4 +1,5 @@
 #include <iostream>
+#include <algorithm>
 #include "volumerender.h"
 
 using namespace std;
@@ -48,11 +49,38 @@ bool VolumeRender::init(QOpenGLShaderProgram *program){
 
 bool VolumeRender::setVolumeData(QOpenGLShaderProgram *program, vector<unsigned short> v, int x, int y, int z){
     voxels = v;
-    sX = x;
-    sY = y;
-    sZ = z;
 
-    Create3Dtexture(program);
+    cout << "Processing texture" << endl;
+
+//    unsigned short sMax = 0;
+//    unsigned short sMin = 32768;
+
+//    for (unsigned int i =0; i< voxels.size(); i++){
+//        sMax = max(sMax, v[i]);
+//        sMin = min(sMin, v[i]);
+//    }
+//    for (unsigned int i =0; i< voxels.size(); i++) voxels[i] = (v[i] - sMin)/(float)(sMax-sMin);
+
+    cout << "Loading 3D texture" << endl;
+
+    gl.glGenTextures(1, &volumeTexture);
+    gl.glBindTexture(GL_TEXTURE_3D, volumeTexture);
+
+    gl.glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    gl.glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    gl.glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+    gl.glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+    gl.glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_BORDER);
+
+    gl.glEnable(GL_TEXTURE_3D);
+    gl.glTexImage3D(GL_TEXTURE_3D, 0, GL_RED, x, y, z, 0, GL_RED, GL_UNSIGNED_SHORT, &voxels[0]);
+
+    gl.glBindTexture(GL_TEXTURE_3D, 0);
+
+    program->bind();
+    program->setUniformValue("VOXELS", 0);
+    program->release();
+
     voxelsLoaded = true;
     return true;
 }
@@ -60,31 +88,11 @@ bool VolumeRender::setVolumeData(QOpenGLShaderProgram *program, vector<unsigned 
 void VolumeRender::render(){
     if (voxelsLoaded){
         VAO.bind();
-        gl.glClearColor(0.8,0.8,0.8,1.0);
-        gl.glClear(GL_COLOR_BUFFER_BIT);
-        //gl.glDrawArrays(GL_TRIANGLES, 0, 12);
+        gl.glActiveTexture(GL_TEXTURE0);
+        gl.glBindTexture(GL_TEXTURE_3D, volumeTexture);
         gl.glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, nullptr);
         VAO.release();
     }
-}
-
-void VolumeRender::Create3Dtexture(QOpenGLShaderProgram *program){
-    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-
-    GLuint volumeTexture;
-    gl.glGenTextures(1, &volumeTexture);
-    gl.glBindTexture(GL_TEXTURE_3D, volumeTexture);
-    gl.glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    gl.glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    gl.glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
-    gl.glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
-    gl.glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_BORDER);
-    gl.glTexImage3D(GL_TEXTURE_3D, 0, GL_R16UI, sX, sY, sZ, 0, GL_RED, GL_UNSIGNED_SHORT, &voxels);
-
-    program->bind();
-    program->setUniformValue("volumeLoaded", true);
-    program->setUniformValue("VOXELS", volumeTexture);
-
 }
 
 void VolumeRender::DefUniforms(QOpenGLShaderProgram *program){
