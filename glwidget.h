@@ -15,19 +15,18 @@ public:
 	~GLWidget();
 
     void loadMesh(const QString &filename, int x, int y, int z);
-    //void setPolygonMode(bool bFill);
 
 protected:
 	void initializeGL();
 	void resizeGL(int w, int h);
 	void paintGL();
 
-    //void mousePressEvent(QMouseEvent *event);
-    //void mouseMoveEvent(QMouseEvent *event);
+    void mousePressEvent(QMouseEvent *event);
+    void mouseMoveEvent(QMouseEvent *event);
 
 private:
-    //void setProjection(float aspect);
-    //void setModelview();
+    void setViewDirection();
+    static QVector3D getEntryPosition(QVector3D direction);
 
 private:
     bool bPolygonFill;

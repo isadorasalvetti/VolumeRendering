@@ -64,7 +64,7 @@ void GLWidget::resizeGL(int w, int h) {
     program->setUniformValue("SIZE", w, h);
     program->release();
 //	setProjection((float)w/h);
-//	setModelview();
+    setViewDirection();
 }
 
 void GLWidget::paintGL() {
@@ -74,7 +74,7 @@ void GLWidget::paintGL() {
 	program->release();
 }
 
-/*
+
 void GLWidget::mousePressEvent(QMouseEvent *event)
 {
 	lastMousePos = event->pos();
@@ -99,47 +99,57 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
 	lastMousePos = event->pos();
 
 	makeCurrent();
-	setModelview();
+    setViewDirection();
 	doneCurrent();
 	update();
 }
 
-void GLWidget::setProjection(float aspect)
+void GLWidget::setViewDirection()
 {
-	QMatrix4x4 projectionMatrix;
-
-	projectionMatrix.perspective(60, aspect, 0.01, 100.0);
+    QMatrix4x4 ViewMatrix;
+    ViewMatrix.rotate(angleX, 1.0f, 0.0f, 0.0f);
+    ViewMatrix.rotate(angleY, 0.0f, 1.0f, 0.0f);
+    QVector3D rayDirection = QVector3D(ViewMatrix.inverted()*QVector4D(0,0,-1,0));
 	program->bind();
-	program->setUniformValue("projection", projectionMatrix);
+    program->setUniformValue("rayDirection", rayDirection);
 	program->release();
 }
 
-void GLWidget::setModelview()
-{
-	QMatrix4x4 modelviewMatrix;
+QVector3D GLWidget::getEntryPosition(QVector3D direction){
+    //Cube vertices
+    QVector3D candidateVertices[8] = {
+        QVector3D(0, 0, 0),
+        QVector3D(1, 0, 0),
+        QVector3D(0, 1, 0),
+        QVector3D(0, 0, 1),
+        QVector3D(1, 1, 0),
+        QVector3D(0, 1, 1),
+        QVector3D(1, 0, 1),
+        QVector3D(1, 1, 1),
+    };
 
-	modelviewMatrix.translate(0, 0, -distance);
-	modelviewMatrix.rotate(angleX, 1.0f, 0.0f, 0.0f);
-	modelviewMatrix.rotate(angleY, 0.0f, 1.0f, 0.0f);
-	program->bind();
-	program->setUniformValue("modelview", modelviewMatrix);
-	program->setUniformValue("normalMatrix", modelviewMatrix.normalMatrix());
-	program->release();
+    QVector3D candidateNormals[6] = {
+        QVector3D(1, 0, 0),
+        QVector3D(0, 1, 0),
+        QVector3D(0, 0, 1),
+        QVector3D(-1, 0, 0),
+        QVector3D(0, -1, 0),
+        QVector3D(0, 0, -1)
+    };
+
+    //Find closest face
+    float highestAngle = 0;
+    int closestFace;
+    for (int i = 0; i < 6; i++){
+        float angle = QVector3D::dotProduct(direction, candidateNormals[i].normalized());
+        if (angle > highestAngle){
+            highestAngle = angle;
+            closestFace = i;
+        }
+    }
+
 }
 
-void GLWidget::setPolygonMode(bool bFill)
-{
-	bPolygonFill = bFill;
-
-	makeCurrent();
-	if(bFill)
-		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-	else
-		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-	doneCurrent();
-	update();
-}
-*/
 void GLWidget::loadMesh(const QString &filename, int x, int y, int z)
 {
     cout << "Loading data of resolution " << x << ", " << y << ", " << z << "." << endl;
