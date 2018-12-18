@@ -4,6 +4,7 @@
 #include <QMatrix4x4>
 #include <QMouseEvent>
 #include <rawreader.h>
+#include <set>
 
 
 using namespace std;
@@ -109,46 +110,54 @@ void GLWidget::setViewDirection()
     QMatrix4x4 ViewMatrix;
     ViewMatrix.rotate(angleX, 1.0f, 0.0f, 0.0f);
     ViewMatrix.rotate(angleY, 0.0f, 1.0f, 0.0f);
-    QVector3D rayDirection = QVector3D(ViewMatrix.inverted()*QVector4D(0,0,-1,0));
+    QMatrix4x4 invViewMatrix = ViewMatrix.inverted();
+    QVector3D rayDirection = QVector3D(invViewMatrix*QVector4D(0,0,-1,0));
+    QVector3D closestFaces = setCandidatesForEntryPosition(rayDirection);
 	program->bind();
+    program->setUniformValue("invViewMatrix", invViewMatrix);
     program->setUniformValue("rayDirection", rayDirection);
+    program->setUniformValue("candidateFaces", closestFaces);
 	program->release();
 }
 
-QVector3D GLWidget::getEntryPosition(QVector3D direction){
+QVector3D GLWidget::setCandidatesForEntryPosition(const QVector3D direction){
     //Cube vertices
-    QVector3D candidateVertices[8] = {
-        QVector3D(0, 0, 0),
-        QVector3D(1, 0, 0),
-        QVector3D(0, 1, 0),
-        QVector3D(0, 0, 1),
-        QVector3D(1, 1, 0),
-        QVector3D(0, 1, 1),
-        QVector3D(1, 0, 1),
-        QVector3D(1, 1, 1),
-    };
-
     QVector3D candidateNormals[6] = {
-        QVector3D(1, 0, 0),
-        QVector3D(0, 1, 0),
-        QVector3D(0, 0, 1),
-        QVector3D(-1, 0, 0),
-        QVector3D(0, -1, 0),
-        QVector3D(0, 0, -1)
+        QVector3D(0, 0, -1), //1. front
+        QVector3D(-1, 0, 0), //2. right
+        QVector3D(0, -1, 0), //3. top
+        QVector3D(0, 0, 1), //4. back
+        QVector3D(1, 0, 0), //5. left
+        QVector3D(0, 1, 0) //6. bottom
     };
 
-    //Find closest face
+    //Find closest faces
     float highestAngle = 0;
-    int closestFace;
+    vector<pair<int, float>> closestFaces; closestFaces.reserve(3);
     for (int i = 0; i < 6; i++){
         float angle = QVector3D::dotProduct(direction, candidateNormals[i].normalized());
-        if (angle > highestAngle){
-            highestAngle = angle;
-            closestFace = i;
-        }
-    }
+            if (closestFaces.size() < 3) closestFaces.push_back(pair<int, float>(i, angle));
 
+            else {
+                if (angle > closestFaces[0].second){
+                    closestFaces.pop_back();
+                    closestFaces.insert(closestFaces.begin(), pair<int, float>(i, angle));
+                }
+                else if (angle > closestFaces[1].second){
+                    closestFaces.pop_back();
+                    closestFaces.insert(closestFaces.begin()+1, pair<int, float>(i, angle));
+                }
+                else if (angle > closestFaces[2].second){
+                    closestFaces.pop_back();
+                    closestFaces.insert(closestFaces.end(), pair<int, float>(i, angle));
+                }
+            }
+        }
+
+    return QVector3D(closestFaces[0].first, closestFaces[1].first, closestFaces[2].first);
 }
+
+
 
 void GLWidget::loadMesh(const QString &filename, int x, int y, int z)
 {

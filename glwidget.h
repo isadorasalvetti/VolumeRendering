@@ -26,7 +26,7 @@ protected:
 
 private:
     void setViewDirection();
-    static QVector3D getEntryPosition(QVector3D direction);
+    QVector3D setCandidatesForEntryPosition(const QVector3D direction);
 
 private:
     bool bPolygonFill;
