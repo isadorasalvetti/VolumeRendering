@@ -21,7 +21,7 @@ GLWidget::GLWidget(QWidget *parent)
     , bPolygonFill(true)
     , angleX(0.0f)
     , angleY(0.0f)
-    , distance(2.0f)
+    , distance(0.0f)
     , vol(*this)
 {
     program = nullptr;
@@ -87,7 +87,7 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
 	if(event->buttons() & Qt::LeftButton)
 	{
 		angleX += rotationFactor * (event->y() - lastMousePos.y());
-		angleX = max(-maxRotationCamera, min(angleX, maxRotationCamera));
+        //angleX = max(-maxRotationCamera, min(angleX, maxRotationCamera));
 		angleY += rotationFactor * (event->x() - lastMousePos.x());
 	}
 	// Zoom
@@ -110,13 +110,15 @@ void GLWidget::setViewDirection()
     QMatrix4x4 ViewMatrix;
     ViewMatrix.rotate(angleX, 1.0f, 0.0f, 0.0f);
     ViewMatrix.rotate(angleY, 0.0f, 1.0f, 0.0f);
+    ViewMatrix.translate(0.0f, 0.0f, -distance);
     QMatrix4x4 invViewMatrix = ViewMatrix.inverted();
-    QVector3D rayDirection = QVector3D(invViewMatrix*QVector4D(0,0,-1,0));
-    QVector3D closestFaces = setCandidatesForEntryPosition(rayDirection);
+    QVector3D rayDirection = QVector3D(invViewMatrix*QVector4D(0,0,-1,1));
+    //QVector3D closestFaces = setCandidatesForEntryPosition(rayDirection);
 	program->bind();
+    program->setUniformValue("viewMatrix", ViewMatrix);
     program->setUniformValue("invViewMatrix", invViewMatrix);
-    program->setUniformValue("rayDirection", rayDirection);
-    program->setUniformValue("candidateFaces", closestFaces);
+    program->setUniformValue("worldSpaceRayDirection", rayDirection);
+    //program->setUniformValue("candidateFaces", closestFaces);
 	program->release();
 }
 
