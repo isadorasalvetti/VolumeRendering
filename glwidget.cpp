@@ -55,7 +55,7 @@ void GLWidget::initializeGL()
     vol.init(program);
 
 	glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
-	glEnable(GL_DEPTH_TEST);
+    glDisable(GL_DEPTH_TEST);
     glEnable(GL_TEXTURE_3D);
 }
 
@@ -110,9 +110,9 @@ void GLWidget::setViewDirection()
     QMatrix4x4 ViewMatrix;
     ViewMatrix.rotate(angleX, 1.0f, 0.0f, 0.0f);
     ViewMatrix.rotate(angleY, 0.0f, 1.0f, 0.0f);
-    ViewMatrix.translate(0.0f, 0.0f, -distance);
+    ViewMatrix.translate(0.0f, 0.0f, 0.0f);
     QMatrix4x4 invViewMatrix = ViewMatrix.inverted();
-    QVector3D rayDirection = QVector3D(invViewMatrix*QVector4D(0,0,-1,1));
+    QVector3D rayDirection = QVector3D(invViewMatrix*QVector4D(0,0,-1,0));
     //QVector3D closestFaces = setCandidatesForEntryPosition(rayDirection);
 	program->bind();
     program->setUniformValue("viewMatrix", ViewMatrix);
