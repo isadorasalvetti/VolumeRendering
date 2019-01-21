@@ -102,27 +102,41 @@ void main(){
     samplecoords -= fragRayStep;
 
     //Shadows
-    stepSize = 0.03;
-    vec3 normal = vec3(0,0,0);
+    stepSize = 0.2;
+    vec3 normal1 = vec3(0,0,0);
+    vec3 normal2 = vec3(0,0,0);
     int iter = 2;
     for (int i = -iter; i <= iter; i++){
         for (int j = -iter; j <= iter; j++){
             for (int k = -iter; k <= iter; k++){
-                vec3 surroundingSample = viewToTextSpace(samplecoords + normalize(vec3(i, j, k))*stepSize);
-                if(isValidText(surroundingSample)){
-                    float valDif = texture(VOXELS, surroundingSample).r - texture(VOXELS, samplecoords).r;
-                    if(valDif > 0) normal += vec3(i, j, k) * valDif;
-                    else normal -= vec3(i, j, k) * valDif;
-                    normal -= vec3(i, j, k);
+                vec3 surroundingSampleFar = viewToTextSpace(samplecoords + normalize(vec3(i, j, k))*stepSize);
+
+                //large shadow
+                if(isValidText(surroundingSampleFar)){
+                    float valDif = texture(VOXELS, surroundingSampleFar).r - texture(VOXELS, samplecoords).r;
+                    if(valDif > 0) normal1 += vec3(i, j, k) * valDif;
+                    else normal1 -= vec3(i, j, k) * valDif;
+                }
+
+                //small shadow
+                vec3 surroundingSampleClose = viewToTextSpace(samplecoords + normalize(vec3(i, j, k))*(stepSize/100));
+                if(isValidText(surroundingSampleFar)){
+                    float valDif = texture(VOXELS, surroundingSampleClose).r - texture(VOXELS, samplecoords).r;
+                    if(valDif > 0) normal2 += vec3(i, j, k) * valDif;
+                    else normal2 -= vec3(i, j, k) * valDif;
                 }
             }
         }
     }
-    if (normal != vec3(0, 0, 0)) normalize(normal);
+    if (normal1 != vec3(0, 0, 0)) normalize(normal1);
     vec3 lDir = normalize(vec3(viewMatrix[2][0], viewMatrix[2][1], viewMatrix[2][2]));
-    float ndotl = dot(lDir, normal);
-    if (ndotl < 0) ndotl = 0;
+    float ndotl1 = dot(lDir, normal1);
+    if (ndotl1 < 0) ndotl1 = 0;
 
-    color = vec4(mix(colorS*ndotl, colorS, 0.3), 1);
+    if (normal2 != vec3(0, 0, 0)) normalize(normal2);
+    float ndotl2 = dot(lDir, normal2);
+    if (ndotl2 < 0) ndotl2 = 0;
+
+    color = vec4(mix(colorS, mix(colorS*ndotl1, colorS*ndotl2, 0.8), 0.8), 1);
 
 }
