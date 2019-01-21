@@ -58,13 +58,14 @@ vec3 transfer(float reading){
 void main(){
     //Find intersections
     vec3 intersec[2] = vec3[2](vec3(0), vec3(0)); //Intersections ordered first[0], last[1].
-
+    float intersec_z[2];
     vec2 tex_norm = gl_FragCoord.xy / SIZE; // [0,1]x[0,1]
     vec2 tex_clip = tex_norm*2 - vec2(1); // [-1,1]x[-1,1]
     vec3 rayDisplacement = (invViewMatrix * vec4(tex_clip, 0, 0)).xyz; // orthogonal plane of ray space (parallel to screen plane)
     vec3 rayDirection = (invViewMatrix * vec4(0,0,-1,0)).xyz; // ray space
 
     vec3 d = rayDirection;
+    int done = 0;
     for (int i = 0; i < 3; i ++){ // each pair of parallel face planes
         vec3 p = rayDisplacement;
         for (int j = -1; j <= 1; j += 2) { // -1,+1, one of the planes
@@ -73,11 +74,22 @@ void main(){
             // check in the face
             if (isValidWorld(q)) {
                 float z = (viewMatrix * vec4(q, 1.0f)).z;
-                intersec[int(z > 0)] = q;
+                intersec[done] = q;
+                intersec_z[done] = z;
+                if (done == 1) {
+                    if (intersec_z[0] > intersec_z[1]) {
+                        float tmp = intersec_z[0];
+                        intersec_z[0] = intersec_z[1];
+                        intersec_z[1] = tmp;
+                        vec3 tmpv = intersec[0];
+                        intersec[0] = intersec[1];
+                        intersec[1] = tmpv;
+                    }
+                }
+                ++done;
             }
         }
     }
-
     if (intersec[1] == vec3(0) && intersec[0] == vec3(0)) discard; // no intersection. Discard fragment.
 
     //Initial color and ray direction
@@ -103,8 +115,8 @@ void main(){
 
     //Shadows
     stepSize = 0.2;
-    vec3 normal1 = vec3(0,0,0);
-    vec3 normal2 = vec3(0,0,0);
+    vec3 normal1 = vec3(0);
+    vec3 normal2 = vec3(0);
     int iter = 2;
     for (int i = -iter; i <= iter; i++){
         for (int j = -iter; j <= iter; j++){
@@ -114,22 +126,20 @@ void main(){
                 //large shadow
                 if(isValidText(surroundingSampleFar)){
                     float valDif = texture(VOXELS, surroundingSampleFar).r - texture(VOXELS, samplecoords).r;
-                    if(valDif > 0) normal1 += vec3(i, j, k) * valDif;
-                    else normal1 -= vec3(i, j, k) * valDif;
+                    normal1 += vec3(i,j,k)*valDif;
                 }
 
                 //small shadow
                 vec3 surroundingSampleClose = viewToTextSpace(samplecoords + normalize(vec3(i, j, k))*(stepSize/100));
                 if(isValidText(surroundingSampleFar)){
                     float valDif = texture(VOXELS, surroundingSampleClose).r - texture(VOXELS, samplecoords).r;
-                    if(valDif > 0) normal2 += vec3(i, j, k) * valDif;
-                    else normal2 -= vec3(i, j, k) * valDif;
+                    normal2 += vec3(i,j,k)*valDif;
                 }
             }
         }
     }
     if (normal1 != vec3(0, 0, 0)) normalize(normal1);
-    vec3 lDir = normalize(vec3(viewMatrix[2][0], viewMatrix[2][1], viewMatrix[2][2]));
+    vec3 lDir = normalize(vec3(-viewMatrix[0][1], -viewMatrix[1][1], -viewMatrix[2][1]));
     float ndotl1 = dot(lDir, normal1);
     if (ndotl1 < 0) ndotl1 = 0;
 
@@ -137,6 +147,6 @@ void main(){
     float ndotl2 = dot(lDir, normal2);
     if (ndotl2 < 0) ndotl2 = 0;
 
-    color = vec4(mix(colorS, mix(colorS*ndotl1, colorS*ndotl2, 0.8), 0.8), 1);
+    color = vec4(mix(colorS, mix(colorS*ndotl1, colorS*ndotl2, 0.5f), 0.75f), 1);
 
 }

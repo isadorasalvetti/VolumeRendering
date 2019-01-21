@@ -61,6 +61,7 @@ vec3 transfer(float reading){
 void main(){
     //Find intersections
     vec3 intersec[2] = vec3[2](vec3(0), vec3(0)); //Intersections ordered first[0], last[1].
+    float intersec_z[2];
 
     vec2 tex_norm = gl_FragCoord.xy / SIZE; // [0,1]x[0,1]
     vec2 tex_clip = tex_norm*2 - vec2(1); // [-1,1]x[-1,1]
@@ -68,6 +69,7 @@ void main(){
     vec3 rayDirection = (invViewMatrix * vec4(0,0,-1,0)).xyz; // ray space
 
     vec3 d = rayDirection;
+    int done = 0;
     for (int i = 0; i < 3; i ++){ // each pair of parallel face planes
         vec3 p = rayDisplacement;
         for (int j = -1; j <= 1; j += 2) { // -1,+1, one of the planes
@@ -76,16 +78,29 @@ void main(){
             // check in the face
             if (isValidWorld(q)) {
                 float z = (viewMatrix * vec4(q, 1.0f)).z;
-                intersec[int(z > 0)] = q;
+                intersec[done] = q;
+                intersec_z[done] = z;
+                if (done == 1) {
+                    if (intersec_z[0] > intersec_z[1]) {
+                        float tmp = intersec_z[0];
+                        intersec_z[0] = intersec_z[1];
+                        intersec_z[1] = tmp;
+                        vec3 tmpv = intersec[0];
+                        intersec[0] = intersec[1];
+                        intersec[1] = tmpv;
+                    }
+                }
+                ++done;
             }
         }
     }
 
-    if (intersec[1] == vec3(0) && intersec[0] == vec3(0)) discard; // no intersection. Discard fragment.
+    if (intersec[1] == vec3(0) || intersec[0] == vec3(0)) discard; // no intersection. Discard fragment.
 
     //Initial color and ray direction
     vec3 colorS = vec3(0);
     vec3 samplecoords = intersec[0];
+    float sample_z = intersec_z[0];
     float stepSize = 0.01;
     vec3 fragRayStep = normalize(intersec[1]-intersec[0]) * stepSize;
 
@@ -94,9 +109,9 @@ void main(){
     for (int i=0; i < maxRays; i++){
         //Add color
         vec3 textCoord = viewToTextSpace(samplecoords);
-        float distFactor = (1-i*0.01);
+        float distFactor = sample_z + i*stepSize;
         if (distFactor < 0.1) distFactor = 0.1;
-        colorS += transfer(texture(VOXELS, textCoord).r)*(1-i*0.005);
+        colorS += transfer(texture(VOXELS, textCoord).r)*distFactor;
         //Go to next voxel
         samplecoords += fragRayStep;
         if (!isValidText(textCoord)) break;
