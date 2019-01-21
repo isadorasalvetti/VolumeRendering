@@ -6,6 +6,7 @@
 #include <QOpenGLFunctions_3_3_Core>
 #include "volumerender.h"
 
+enum shader{TRANSPARENT, OPAQUE};
 
 class GLWidget : public QOpenGLWidget, protected QOpenGLFunctions_3_3_Core
 {
@@ -15,6 +16,8 @@ public:
 	~GLWidget();
 
     void loadMesh(const QString &filename, int x, int y, int z);
+    void updateParameters(float brightness, float min, float max);
+    void changeShader(shader type);
 
 protected:
 	void initializeGL();
@@ -29,11 +32,13 @@ private:
     QVector3D setCandidatesForEntryPosition(const QVector3D direction);
 
 private:
+    QVector2D currentSize;
     bool bPolygonFill;
 	float angleX, angleY, distance;
 	QPoint lastMousePos;
 
 	QOpenGLShaderProgram *program;
+    QOpenGLShader *vs, *fs_opaque, *fs_transparent;
     VolumeRender vol;
 
 };

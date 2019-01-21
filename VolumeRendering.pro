@@ -19,9 +19,6 @@ SOURCES += glwidget.cpp main.cpp mainwindow.cpp \
     dialogresolution.cpp \
     volumerender.cpp
 
-DISTFILES += \
-    shaders/simpleshader.vert \
-    shaders/simpleshader.frag
 
 RESOURCES += \
     resources.qrc

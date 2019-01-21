@@ -85,6 +85,12 @@ bool VolumeRender::setVolumeData(QOpenGLShaderProgram *program, vector<unsigned 
     return true;
 }
 
+void VolumeRender::bindtoProgram(QOpenGLShaderProgram *program){
+    program->bind();
+    program->setUniformValue("VOXELS", 0);
+    program->release();
+}
+
 void VolumeRender::render(){
     if (voxelsLoaded){
         VAO.bind();

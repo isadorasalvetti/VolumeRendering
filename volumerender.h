@@ -17,7 +17,9 @@ public:
     VolumeRender(QOpenGLFunctions_3_3_Core &ogl);
 
 public:
+    bool voxelsLoaded = false;
     bool init(QOpenGLShaderProgram *program);
+    void bindtoProgram(QOpenGLShaderProgram *program);
     bool setVolumeData(QOpenGLShaderProgram *program, vector<unsigned short> v, int x, int y, int z);
 	void destroy();
     void render();
@@ -29,7 +31,6 @@ private:
 
     void DefUniforms(QOpenGLShaderProgram *program);
 
-    bool voxelsLoaded = false;
     vector<unsigned short> voxels;
     int sX, sY, sZ;
 

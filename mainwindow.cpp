@@ -23,11 +23,6 @@ void MainWindow::on_action_Quit_triggered()
 	 QApplication::quit();
 }
 
-void MainWindow::on_checkBoxFill_toggled(bool checked)
-{
-    // ui->openGLWidget->setPolygonMode(checked);
-}
-
 void MainWindow::on_action_Open_triggered()
 {
     DialogResolution resolutionWindow(this);
@@ -38,5 +33,33 @@ void MainWindow::on_action_Open_triggered()
 
 void MainWindow::OpenVolumeData(int x, int y, int z){
     QString filename = QFileDialog::getOpenFileName(this, tr("Open RAW"), ".", tr("*.raw"));
+    sendParams();
     ui->openGLWidget->loadMesh(filename, x, y, z);
+}
+
+void MainWindow::on_BrightnessBox_valueChanged(double val){
+    sendParams();
+}
+
+void MainWindow::on_MinBox_valueChanged(double val){
+    sendParams();
+}
+
+void MainWindow::on_MaxBox_valueChanged(double val){
+    sendParams();
+}
+
+void MainWindow::sendParams(){
+    ui->openGLWidget->updateParameters(ui->BrightnessBox->value(), ui->MinBox->value(), ui->MaxBox->value());
+    ui->openGLWidget->update();
+}
+
+void MainWindow::on_Opaque_released(){
+    ui->openGLWidget->changeShader(OPAQUE);
+    sendParams();
+}
+
+void MainWindow::on_Transparent_released(){
+    ui->openGLWidget->changeShader(TRANSPARENT);
+    sendParams();
 }

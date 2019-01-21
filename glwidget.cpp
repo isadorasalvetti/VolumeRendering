@@ -37,9 +37,18 @@ void GLWidget::initializeGL()
 {
 	initializeOpenGLFunctions();
 
+    vs = new QOpenGLShader(QOpenGLShader::Vertex, this);
+    fs_opaque = new QOpenGLShader(QOpenGLShader::Fragment, this);
+    fs_transparent = new QOpenGLShader(QOpenGLShader::Fragment, this);
+
+    if (!vs->compileSourceFile(":/shaders/simpleshader.vert"))
+        cout << "vs log:" << vs->log().toStdString() << endl;
+    fs_opaque->compileSourceFile(":/shaders/opaque.frag");
+    fs_transparent->compileSourceFile(":/shaders/xRayShader.frag");
+
 	program = new QOpenGLShaderProgram();
-	program->addShaderFromSourceFile(QOpenGLShader::Vertex, ":/shaders/simpleshader.vert");
-	program->addShaderFromSourceFile(QOpenGLShader::Fragment, ":/shaders/simpleshader.frag");
+    program->addShader(vs);
+    program->addShader(fs_transparent);
 	program->link();
 	if(!program->isLinked())
 	{
@@ -54,17 +63,17 @@ void GLWidget::initializeGL()
 
     vol.init(program);
 
-	glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+    glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
     glDisable(GL_DEPTH_TEST);
     glEnable(GL_TEXTURE_3D);
 }
 
 void GLWidget::resizeGL(int w, int h) {
 	glViewport(0,0,w,h);
+    currentSize = QVector2D(w, h);
     program->bind();
     program->setUniformValue("SIZE", w, h);
     program->release();
-//	setProjection((float)w/h);
     setViewDirection();
 }
 
@@ -112,54 +121,12 @@ void GLWidget::setViewDirection()
     ViewMatrix.rotate(angleY, 0.0f, 1.0f, 0.0f);
     ViewMatrix.translate(0.0f, 0.0f, 0.0f);
     QMatrix4x4 invViewMatrix = ViewMatrix.inverted();
-    QVector3D rayDirection = QVector3D(invViewMatrix*QVector4D(0,0,-1,0));
-    //QVector3D closestFaces = setCandidatesForEntryPosition(rayDirection);
+
 	program->bind();
     program->setUniformValue("viewMatrix", ViewMatrix);
     program->setUniformValue("invViewMatrix", invViewMatrix);
-    program->setUniformValue("worldSpaceRayDirection", rayDirection);
-    //program->setUniformValue("candidateFaces", closestFaces);
 	program->release();
 }
-
-QVector3D GLWidget::setCandidatesForEntryPosition(const QVector3D direction){
-    //Cube vertices
-    QVector3D candidateNormals[6] = {
-        QVector3D(0, 0, -1), //1. front
-        QVector3D(-1, 0, 0), //2. right
-        QVector3D(0, -1, 0), //3. top
-        QVector3D(0, 0, 1), //4. back
-        QVector3D(1, 0, 0), //5. left
-        QVector3D(0, 1, 0) //6. bottom
-    };
-
-    //Find closest faces
-    float highestAngle = 0;
-    vector<pair<int, float>> closestFaces; closestFaces.reserve(3);
-    for (int i = 0; i < 6; i++){
-        float angle = QVector3D::dotProduct(direction, candidateNormals[i].normalized());
-            if (closestFaces.size() < 3) closestFaces.push_back(pair<int, float>(i, angle));
-
-            else {
-                if (angle > closestFaces[0].second){
-                    closestFaces.pop_back();
-                    closestFaces.insert(closestFaces.begin(), pair<int, float>(i, angle));
-                }
-                else if (angle > closestFaces[1].second){
-                    closestFaces.pop_back();
-                    closestFaces.insert(closestFaces.begin()+1, pair<int, float>(i, angle));
-                }
-                else if (angle > closestFaces[2].second){
-                    closestFaces.pop_back();
-                    closestFaces.insert(closestFaces.end(), pair<int, float>(i, angle));
-                }
-            }
-        }
-
-    return QVector3D(closestFaces[0].first, closestFaces[1].first, closestFaces[2].first);
-}
-
-
 
 void GLWidget::loadMesh(const QString &filename, int x, int y, int z)
 {
@@ -174,4 +141,32 @@ void GLWidget::loadMesh(const QString &filename, int x, int y, int z)
 	doneCurrent();
 	update();
 
+}
+
+void GLWidget::updateParameters(float brightness, float min, float max){
+    program->bind();
+    program->setUniformValue("brightness", brightness);
+    program->setUniformValue("min", min);
+    program->setUniformValue("max", max);
+    program->release();
+}
+
+void GLWidget::changeShader(shader type){
+    program->removeAllShaders();
+
+    program->addShader(vs);
+    if (type == TRANSPARENT) program->addShader(fs_transparent);
+    else if (type == OPAQUE) program->addShader(fs_opaque);
+
+    program->link();
+    if(!program->isLinked())
+    {
+            cout << "Shader program has not linked" << endl << endl << "Log: " << endl << endl << program->log().toStdString();
+            QApplication::quit();
+    }
+    program->bind();
+    program->setUniformValue("SIZE", currentSize[0], currentSize[1]);
+    program->release();
+    if (vol.voxelsLoaded)vol.bindtoProgram(program);
+    setViewDirection();
 }
